@@ -12,26 +12,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9','3.10','3.11','3.12','3.13']
+
     steps:
       - uses: actions/checkout@v4
 
-      # Install uv and select the Python version for this job
+      # Install uv and select the Python for this job
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
-          # Invalidate cache when deps/lockfile change (defaults also include pyproject/uv.lock)
-          cache-dependency-glob: |
-            **/pyproject.toml
-            **/uv.lock
-            **/requirements*.txt
 
-      # Install your project (editable) + test extras (adjust if you don't use [test])
+      # Create a project-local virtual environment (.venv)
+      - name: Create venv
+        run: uv venv
+
+      # Install your package + test extras (adjust as needed)
       - name: Install dependencies
         run: uv pip install -e ".[test]"
 
-      # Run tests under the selected Python using uv's environment
+      # Run tests inside the uv-managed venv
       - name: Run pytest
         run: uv run --frozen pytest -q
