@@ -28,7 +28,7 @@ jobs:
       - name: Create venv
         run: uv venv
 
-      # Install your package + test extras (adjust as needed)
+      # Install your package + test extras
       - name: Install dependencies
         run: uv pip install -e ".[test]"
 
