@@ -34,4 +34,4 @@ jobs:
 
       # Run tests inside the uv-managed venv
       - name: Run pytest
-        run: uv run --frozen pytest -q
+        run: uv run pytest -q
