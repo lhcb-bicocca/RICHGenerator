@@ -2,32 +2,36 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
-  build:
-    runs-on: windows-latest
+  test:
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [3.9, 3.10, 3.11, 3.12, 3.13]
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
+
+      # Install uv and select the Python version for this job
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install conda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          activate-environment: base
+          enable-cache: true
+          # Invalidate cache when deps/lockfile change (defaults also include pyproject/uv.lock)
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+            **/requirements*.txt
+
+      # Install your project (editable) + test extras (adjust if you don't use [test])
       - name: Install dependencies
-        shell: bash
-        run: |
-          conda install -y numpy scipy h5py pillow pytest -c conda-forge
-      - name: Run tests
-        run: |
-          pytest -q
+        run: uv pip install -e ".[test]"
+
+      # Run tests under the selected Python using uv's environment
+      - name: Run pytest
+        run: uv run --frozen pytest -q
