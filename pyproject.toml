@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools >= 77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rich-generator"
+version = "0.1.0"
+description = "Synthetic Cherenkov ring generator for LHCb RICH detectors with optional image generation utilities"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [ { name="Giovanni Laganà", email="giovanni.lagana@campus.unimib.it" } ]
+license = { text = "MIT" }
+keywords = ["physics", "Cherenkov", "RICH", "synthetic data", "machine learning", "particles"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.20",
+    "h5py",
+    "tqdm",
+    "particle>=0.10",
+    "Pillow",
+    "scipy",
+    "typing-extensions; python_version<'3.11'",
+]
+
+[project.urls]
+Repository = "https://github.com/lhcb-bicocca/RichGenerator"
+Issues = "https://github.com/lhcb-bicocca/RichGenerator/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["rich_generator*"]
