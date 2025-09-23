@@ -58,15 +58,15 @@ Requires Python ≥ 3.9. Main dependencies (see [pyproject.toml](pyproject.toml)
 
 Cherenkov condition:
 
-$ \cos \theta_c = \frac{1}{n \beta}, \quad \beta = \frac{p}{\sqrt{p^2 + m^2}} $
+$\cos \theta_c = \frac{1}{n \beta}, \quad \beta = \frac{p}{\sqrt{p^2 + m^2}}$
 
 Maximum angle (ultra-relativistic):
 
-$ \theta_{c,\max} = \arccos \left( \frac{1}{n} \right) $
+$\theta_{c,\max} = \arccos \left( \frac{1}{n} \right)$
 
 Radius mapping to a reference maximum physical radius $R_{\max}$:
 
-$ R(\theta_c) = R_{\max} \frac{\tan \theta_c}{\tan \theta_{c,\max}} $
+$R(\theta_c) = R_{\max} \frac{\tan \theta_c}{\tan \theta_{c,\max}}$
 
 Implemented helpers:
 * [`rich_generator.dataset_utils.calculate_cherenkov_angle`](src/rich_generator/dataset_utils.py)
@@ -205,12 +205,12 @@ When `polar_transform=True`, hits are mapped:
 
 * Angle: $x = \mathrm{round}(\theta \cdot \frac{H-1}{2\pi})$
 * Radius (non-stretched):  
-  $ y = \mathrm{round}\left( (R_{\text{global,max}} - r) \cdot \frac{H-1}{R_{\text{global,max}}} \right)$
+  $y = \mathrm{round}\left( (R_{\text{global,max}} - r) \cdot \frac{H-1}{R_{\text{global,max}}} \right)$
 
-“Stretched” legacy mode (`stretch_radii=True`) remaps only the annulus covered by hypothetical rings:
+“Stretched” legacy (similar to what wased used in Giovanni Laganà's bachelor thesis) mode (`stretch_radii=True`) remaps only the annulus covered by hypothetical rings:
 
 * Let $R_{\min}$ / $R_{\max}$ be the inner / outer radii after mass bounds + noise margin.  
-  $ y = \mathrm{round}\left( (R_{\max} - r) \cdot \frac{H-1}{R_{\max} - R_{\min}} \right)$
+  $y = \mathrm{round}\left( (R_{\max} - r) \cdot \frac{H-1}{R_{\max} - R_{\min}} \right)$
 
 Effect:
 * Non-stretched preserves a consistent vertical scale, that means all images have the same physical size.
