@@ -104,6 +104,7 @@ class SCGen:
         N_init: int,
         max_radius: float = 100.0,
         masses: Optional[Dict[int, float]] = None,
+        particle_type_proportions: Optional[Dict[int, float] | Iterable[float]] = None,
     ) -> None:
         self.particle_types = list(particle_types)
         self.refractive_index = float(refractive_index)
@@ -124,6 +125,29 @@ class SCGen:
             else:
                 self.momenta_log_distributions[ptype] = dist
 
+        self.particle_type_proportions: Optional[np.ndarray] = None
+        if particle_type_proportions is not None:
+            if isinstance(particle_type_proportions, dict):
+                proportions = [
+                    particle_type_proportions.get(ptype, 0)
+                    for ptype in self.particle_types
+                ]
+                if sum(proportions) == 0:
+                    raise ValueError(
+                        "Proportions dictionary does not match any of the particle types."
+                    )
+                self.particle_type_proportions = np.array(proportions) / sum(proportions) # Normalise to sum to 1
+            elif isinstance(particle_type_proportions, list):
+                if len(particle_type_proportions) != len(self.particle_types):
+                    raise ValueError(
+                        "Length of particle_type_proportions list must match particle_types."
+                    )
+                self.particle_type_proportions = np.array(
+                    particle_type_proportions
+                ) / np.sum(particle_type_proportions) # Normalise to sum to 1
+            else:
+                raise TypeError("particle_type_proportions must be a dict or a list.")
+
         self.N_init = int(N_init)
         self.max_cherenkov_radius = float(max_radius)
         self.max_cherenkov_angle = np.arccos(1.0 / refractive_index)
@@ -131,7 +155,9 @@ class SCGen:
         # initialise masses
         if masses is None:
             # use the particle package to look up masses in GeV
-            self.masses = {pt: Particle.from_pdgid(pt).mass for pt in self.particle_types}
+            self.masses = {
+                pt: Particle.from_pdgid(pt).mass for pt in self.particle_types
+            }
         else:
             self.masses = {int(k): float(v) for k, v in masses.items()}
 
@@ -198,7 +224,11 @@ class SCGen:
             rings and tracked indices.
         """
         # sample particle types
-        ptypes = np.random.choice(self.particle_types, size=num_particles)
+        ptypes = np.random.choice(
+            self.particle_types,
+            size=num_particles,
+            p=self.particle_type_proportions,
+        )
         # sample centres from the supplied distribution
         centers = self.centers_distribution.resample(num_particles)
         centers = centers.T  # expected shape (N,2)

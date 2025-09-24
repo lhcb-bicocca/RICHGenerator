@@ -120,6 +120,7 @@ gen = SCGen(
   radial_noise=(0.0, 1.5),                   # mean & sigma radial Gaussian noise
   N_init=50,                                 # photon yield scale
   max_radius=100.0,                          # reference max physical radius
+  particle_type_proportions={211: 0.8, 321: 0.2}, # custom particle abundances
 )
 
 # Generate a handful of events (each with 5-7 particles)
@@ -146,7 +147,20 @@ generate_MYOLO_dataset_folder(
   stretch_radii=True,
 )
 ```
+**Using default distributions & particle type proportions**
+To get events with distributions similar to LHCb RICH1 data, you can use the provided KDEs and a JSON file for particle type proportions. You can find the JSON file in the `distributions/` folder named `particle_type_proportions.json` and the log-momentum KDEs in the `distributions/log_momenta_kdes/` folder. Here's how you can load all of them:
 
+```python
+from rich_generator.dataset_utils import load_kde
+import json
+
+ptypes = [211, 321, 2212, 11, 13]  # PDG codes for pi+, K+, p, e-, mu-
+# Load provided log-momentum KDEs (they already model log(p); DO NOT exponentiate here)
+mom_dists = {pt: load_kde(f"distributions/log_momenta_kdes/{pt}-kde.npz") for pt in ptypes}
+# Load particle type proportions from JSON
+with open("distributions/particle_type_proportions.json", "r") as f:
+    particle_type_proportions = json.load(f)
+```
 
 ---
 
@@ -159,6 +173,7 @@ Class: [`rich_generator.generator.SCGen`](src/rich_generator/generator.py)
 Key constructor arguments:
 * `particle_types` - PDG codes (masses auto-loaded via `particle` unless overridden).
 * `momenta_log_distributions` - dict of PDG → distribution objects exposing `.resample(size)` returning log-momenta.
+* `particle_type_proportions` - optional `dict` or `list` to control the relative abundance of sampled particle types. If not provided, sampling is uniform.
 * `centers_distribution` - distribution with `.resample(size)` → shape `(2, size)` array (x row, y row).
 * `radial_noise` - `(mean, sigma)` or single `sigma` for Gaussian perturbation of ring radius.
 * `N_init` - base photon yield scale.

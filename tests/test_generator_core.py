@@ -10,6 +10,8 @@ private ``_create_rings`` routine.
 """
 
 import math
+import json
+from pathlib import Path
 import numpy as np
 import pytest
 
@@ -18,6 +20,12 @@ from rich_generator.dataset_utils import (
     calculate_cherenkov_angle,
     calculate_cherenkov_radius,
 )
+
+
+@pytest.fixture
+def particle_proportions_path():
+    """Path to the test particle proportions file."""
+    return Path(__file__).parent.parent / "distributions" / "particle_proportions.json"
 
 
 def test_generate_event_output_structure(rng_seed, simple_centers_distribution):
@@ -65,6 +73,90 @@ def test_generate_event_output_structure(rng_seed, simple_centers_distribution):
         assert ring.ndim == 2 and ring.shape[1] == 2
         # zero-hit rings are empty float arrays
         assert ring.dtype.kind == "f"
+
+
+def test_particle_type_proportions(
+    rng_seed, simple_centers_distribution, particle_proportions_path
+):
+    """Verify that particle types are sampled according to the given proportions."""
+    rng_seed(456)
+    with open(particle_proportions_path) as f:
+        proportions_dict = json.load(f)
+    # string keys to int
+    proportions_dict = {int(k): v for k, v in proportions_dict.items()}
+
+    particle_types = list(proportions_dict.keys())
+    proportions = list(proportions_dict.values())
+
+    scgen = SCGen(
+        particle_types=particle_types,
+        refractive_index=1.0014,
+        detector_size=((-10, 10), (-10, 10)),
+        momenta_log_distributions={pt: (0.0, 0.0) for pt in particle_types},
+        centers_distribution=simple_centers_distribution,
+        radial_noise=(0.0, 0.0),
+        N_init=20,
+        max_radius=100.0,
+        particle_type_proportions=proportions_dict,
+    )
+
+    # generate a large number of particles
+    event = scgen.generate_event(10000)
+    counts = np.unique(event["particle_types"], return_counts=True)
+    type_map = {ptype: count for ptype, count in zip(*counts)}
+
+    # check if the observed proportions are close to the expected ones
+    for ptype, prop in zip(particle_types, proportions):
+        expected_count = prop * 10000
+        assert np.isclose(type_map.get(ptype, 0), expected_count, atol=500)
+
+    # test with a list
+    scgen_list = SCGen(
+        particle_types=particle_types,
+        refractive_index=1.0014,
+        detector_size=((-10, 10), (-10, 10)),
+        momenta_log_distributions={pt: (0.0, 0.0) for pt in particle_types},
+        centers_distribution=simple_centers_distribution,
+        radial_noise=(0.0, 0.0),
+        N_init=20,
+        max_radius=100.0,
+        particle_type_proportions=proportions,
+    )
+    event_list = scgen_list.generate_event(10000)
+    counts_list = np.unique(event_list["particle_types"], return_counts=True)
+    type_map_list = {ptype: count for ptype, count in zip(*counts_list)}
+    for ptype, prop in zip(particle_types, proportions):
+        expected_count = prop * 10000
+        assert np.isclose(type_map_list.get(ptype, 0), expected_count, atol=500)
+
+    # test error conditions
+    with pytest.raises(ValueError):
+        SCGen(
+            particle_types=particle_types,
+            refractive_index=1.0014,
+            detector_size=((-10, 10), (-10, 10)),
+            momenta_log_distributions={pt: (0.0, 0.0) for pt in particle_types},
+            centers_distribution=simple_centers_distribution,
+            radial_noise=(0.0, 0.0),
+            N_init=20,
+            max_radius=100.0,
+            particle_type_proportions=[0.1, 0.9],  # wrong length
+        )
+    with pytest.raises(TypeError):
+        SCGen(
+            particle_types=particle_types,
+            refractive_index=1.0014,
+            detector_size=((-10, 10), (-10, 10)),
+            momenta_log_distributions={pt: (0.0, 0.0) for pt in particle_types},
+            centers_distribution=simple_centers_distribution,
+            radial_noise=(0.0, 0.0),
+            N_init=20,
+            max_radius=100.0,
+            particle_type_proportions="not a dict or list",
+        )
+
+
+
 
 
 def test_cherenkov_threshold_and_ultra_relativistic():
