@@ -148,7 +148,9 @@ generate_MYOLO_dataset_folder(
 )
 ```
 **Using default distributions & particle type proportions**
-To get events with distributions similar to LHCb RICH1 data, you can use the provided KDEs and a JSON file for particle type proportions. You can find the JSON file in the `distributions/` folder named `particle_type_proportions.json` and the log-momentum KDEs in the `distributions/log_momenta_kdes/` folder. Here's how you can load all of them:
+
+To get events with distributions similar to LHCb RICH1 data, you can use the provided KDEs and a JSON file for particle type proportions. You can find the JSON file in the `distributions/` folder named `particle_type_proportions.json` and the log-momentum KDEs in the `distributions/log_momenta_kdes/` folder. KDEs for centers positions are also provided in the same `distributions/` folder.
+Here's how you can load all of them:
 
 ```python
 from rich_generator.dataset_utils import load_kde
@@ -157,6 +159,8 @@ import json
 ptypes = [211, 321, 2212, 11, 13]  # PDG codes for pi+, K+, p, e-, mu-
 # Load provided log-momentum KDEs (they already model log(p); DO NOT exponentiate here)
 mom_dists = {pt: load_kde(f"distributions/log_momenta_kdes/{pt}-kde.npz") for pt in ptypes}
+# Load 2D centres KDE (returns samples shaped (2, N))
+centers_kde = load_kde("distributions/centers_R1-kde.npz")
 # Load particle type proportions from JSON
 with open("distributions/particle_type_proportions.json", "r") as f:
     particle_type_proportions = json.load(f)
