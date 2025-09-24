@@ -149,8 +149,54 @@ generate_MYOLO_dataset_folder(
 ```
 **Using default distributions & particle type proportions**
 
-To get events with distributions similar to LHCb RICH1 data, you can use the provided KDEs and a JSON file for particle type proportions. You can find the JSON file in the `distributions/` folder named `particle_type_proportions.json` and the log-momentum KDEs in the `distributions/log_momenta_kdes/` folder. KDEs for centers positions are also provided in the same `distributions/` folder.
-Here's how you can load all of them:
+To get events with distributions similar to LHCb RICH1 data, you can use the utility functions that automatically load the bundled KDEs and particle proportions:
+
+```python
+from rich_generator import (
+    create_scgen_with_defaults,
+    load_default_log_momenta_kdes,
+    load_default_centers,
+    load_default_particle_weights,
+    list_available_particle_types,
+)
+
+# Method 1: Use the convenience function (recommended)
+gen = create_scgen_with_defaults()  # Uses all default particles and R1 detector
+gen.generate_dataset(num_events=5, num_particles_per_event=10)
+
+# Method 2: Create with specific particles and R1 detector
+gen = create_scgen_with_defaults(
+    particle_types=[211, 321, 2212],  # pions, kaons, protons only
+    detector="R1",
+    refractive_index=1.0014,
+    N_init=60
+)
+
+# Method 3: Load distributions manually for custom usage
+ptypes = list_available_particle_types()  # See all available particles
+print(f"Available particles: {ptypes}")
+
+mom_dists = load_default_log_momenta_kdes([211, 321, 2212])  # Load specific KDEs
+centers_kde = load_default_centers("R1")  # Load R1 center distribution
+weights = load_default_particle_weights()  # Load default proportions
+
+# Create SCGen manually with loaded distributions
+from rich_generator import SCGen
+gen = SCGen(
+    particle_types=[211, 321, 2212],
+    refractive_index=1.0014,
+    detector_size=((-600, 600), (-600, 600)),
+    momenta_log_distributions=mom_dists,
+    centers_distribution=centers_kde,
+    radial_noise=1.5,
+    N_init=60,
+    particle_type_proportions={211: weights[211], 321: weights[321], 2212: weights[2212]}
+)
+```
+
+**Manual method:**
+
+If you clone the repository and want to load the distributions manually, you can do so as follows:
 
 ```python
 from rich_generator.dataset_utils import load_kde
@@ -206,7 +252,47 @@ Two levels:
 1. Whole event raster: [`rich_generator.generator.SCGen.event_image`](src/rich_generator/generator.py)
 2. Ring-centred YOLO style images: [`rich_generator.dataset_utils.generate_MYOLO_dataset_folder`](src/rich_generator/dataset_utils.py)
 
-### 6.5 Generating Balanced Synthetic Datasets
+### 6.5 Using Default Distributions
+
+The package includes utility functions to easily load default distributions based on LHCb RICH detector data:
+
+**Available functions:**
+* [`rich_generator.utility.load_default_log_momenta_kdes`](src/rich_generator/utility.py) - Load KDEs for log-momentum distributions
+* [`rich_generator.utility.load_default_centers`](src/rich_generator/utility.py) - Load KDEs for center position distributions  
+* [`rich_generator.utility.load_default_particle_weights`](src/rich_generator/utility.py) - Load particle type proportions
+* [`rich_generator.utility.create_scgen_with_defaults`](src/rich_generator/utility.py) - Convenience function to create a fully configured SCGen
+
+**Example usage:**
+
+```python
+from rich_generator import (
+    create_scgen_with_defaults,
+    load_default_log_momenta_kdes,
+    list_available_particle_types,
+)
+
+# Quick start with all defaults
+gen = create_scgen_with_defaults()
+events = gen.generate_dataset(num_events=100, num_particles_per_event=20)
+
+# Customize specific parameters while using defaults for distributions
+gen = create_scgen_with_defaults(
+    particle_types=[211, 321, 2212],  # pions, kaons, protons
+    detector="R1",                     # use R1 center distribution
+    refractive_index=1.0014,           # custom refractive index
+    N_init=60                         # custom photon yield
+)
+
+# See what's available
+particles = list_available_particle_types()
+print(f"Available particle KDEs: {particles}")
+
+# Load specific distributions for manual use
+momenta_kdes = load_default_log_momenta_kdes([211, 321])
+pion_samples = momenta_kdes[211].resample(1000)  # Get 1000 log-momentum samples
+```
+
+### 6.6 Generating Balanced Synthetic Datasets
 
 Function: [`rich_generator.dataset_utils.generate_MYOLO_dataset`](src/rich_generator/dataset_utils.py)
 
@@ -301,10 +387,11 @@ Contributions (issues / PRs) are welcome. Please:
 
 ## API Reference (Summary)
 
-Symbols (see source docstrings):
-
+### Core Classes and Functions
 * [`rich_generator.generator.SCGen`](src/rich_generator/generator.py)
 * [`rich_generator.generator.UniformDist`](src/rich_generator/generator.py)
+
+### Dataset Utilities
 * [`rich_generator.dataset_utils.calculate_cherenkov_angle`](src/rich_generator/dataset_utils.py)
 * [`rich_generator.dataset_utils.calculate_cherenkov_radius`](src/rich_generator/dataset_utils.py)
 * [`rich_generator.dataset_utils.read_dataset`](src/rich_generator/dataset_utils.py)
@@ -314,4 +401,22 @@ Symbols (see source docstrings):
 * [`rich_generator.dataset_utils.TruncatedKDE`](src/rich_generator/dataset_utils.py)
 * [`rich_generator.dataset_utils.save_kde`](src/rich_generator/dataset_utils.py)
 * [`rich_generator.dataset_utils.load_kde`](src/rich_generator/dataset_utils.py)
+
+### Default Distribution Utilities
+* [`rich_generator.utility.load_default_log_momenta_kdes`](src/rich_generator/utility.py) - Load bundled log-momentum KDEs
+* [`rich_generator.utility.load_default_centers`](src/rich_generator/utility.py) - Load bundled center distribution KDEs
+* [`rich_generator.utility.load_default_particle_weights`](src/rich_generator/utility.py) - Load bundled particle type proportions
+* [`rich_generator.utility.list_available_particle_types`](src/rich_generator/utility.py) - List all available particle types (PDG codes) for which log-momentum KDEs are provided
+* [`rich_generator.utility.list_available_center_distributions`](src/rich_generator/utility.py) - List available center distributions
+* [`rich_generator.utility.create_scgen_with_defaults`](src/rich_generator/utility.py) - Convenience function to create SCGen with defaults
+
+All utility functions are also available directly from the main package:
+```python
+from rich_generator import (
+    load_default_log_momenta_kdes,
+    load_default_centers, 
+    load_default_particle_weights,
+    create_scgen_with_defaults
+)
+```
 

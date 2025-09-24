@@ -27,6 +27,15 @@ from .dataset_utils import (
     generate_MYOLO_dataset as generate_myolo_dataset,
     generate_MYOLO_dataset_folder as generate_myolo_dataset_folder,
 )
+# re-export utility functions for loading default distributions
+from .utility import (
+    load_default_log_momenta_kdes,
+    load_default_centers,
+    load_default_particle_weights,
+    list_available_particle_types,
+    list_available_center_distributions,
+    create_scgen_with_defaults,
+)
 
 __all__ = [
     "SCGen",
@@ -37,6 +46,12 @@ __all__ = [
     "read_dataset_metadata",
     "generate_myolo_dataset",
     "generate_myolo_dataset_folder",
+    "load_default_log_momenta_kdes",
+    "load_default_centers",
+    "load_default_particle_weights",
+    "list_available_particle_types",
+    "list_available_center_distributions",
+    "create_scgen_with_defaults",
 ]
 
 
