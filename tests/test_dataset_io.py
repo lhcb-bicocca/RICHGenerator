@@ -8,12 +8,16 @@ without emitting progress output.
 """
 
 import numpy as np
-import os
 import pytest
 
 from rich_generator.generator import SCGen
 from rich_generator.dataset_utils import read_dataset, read_dataset_metadata, load_kde
+from rich_generator.utility import _get_distributions_path
 
+def get_distribution_path(relative_path: str) -> str:
+    """Get the full path to a distribution file within the package."""
+    distributions_dir = _get_distributions_path()
+    return str(distributions_dir / relative_path)
 
 def test_dataset_roundtrip(tmp_path, rng_seed, simple_centers_distribution):
     """Save a small dataset to disk and load it back, checking metadata and shapes."""
@@ -21,10 +25,10 @@ def test_dataset_roundtrip(tmp_path, rng_seed, simple_centers_distribution):
     # Load KDE distributions from the repository rather than constructing
     # synthetic ones.  Use the shipped log-momentum KDEs and centre KDE.
     kdes = {
-        211: load_kde(os.path.join(os.path.dirname(__file__), '..', 'distributions', 'log_momenta_kdes', '211-kde.npz')),
-        321: load_kde(os.path.join(os.path.dirname(__file__), '..', 'distributions', 'log_momenta_kdes', '321-kde.npz')),
+        211: load_kde(get_distribution_path('log_momenta_kdes/211-kde.npz')),
+        321: load_kde(get_distribution_path('log_momenta_kdes/321-kde.npz')),
     }
-    centres_kde = load_kde(os.path.join(os.path.dirname(__file__), '..', 'distributions', 'centers_R1-kde.npz'))
+    centres_kde = load_kde(get_distribution_path('centers_R1-kde.npz'))
     # construct a generator with the real distributions
     # Provide explicit masses to avoid reliance on the ``particle`` package which
     # may not be installed in the test environment.  Masses are given in GeV/c².

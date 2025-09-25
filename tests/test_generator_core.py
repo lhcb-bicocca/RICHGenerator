@@ -11,7 +11,6 @@ private ``_create_rings`` routine.
 
 import math
 import json
-from pathlib import Path
 import numpy as np
 import pytest
 
@@ -20,12 +19,19 @@ from rich_generator.dataset_utils import (
     calculate_cherenkov_angle,
     calculate_cherenkov_radius,
 )
+from rich_generator.utility import _get_distributions_path
+
+
+def get_distribution_path(relative_path: str) -> str:
+    """Get the full path to a distribution file within the package."""
+    distributions_dir = _get_distributions_path()
+    return str(distributions_dir / relative_path)
 
 
 @pytest.fixture
 def particle_proportions_path():
     """Path to the test particle proportions file."""
-    return Path(__file__).parent.parent / "distributions" / "particle_proportions.json"
+    return get_distribution_path("particle_proportions.json")
 
 
 def test_generate_event_output_structure(rng_seed, simple_centers_distribution):

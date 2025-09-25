@@ -38,5 +38,11 @@ include-package-data = true
 where = ["src"]
 include = ["rich_generator*"]
 
+[tool.setuptools.package-data]
+rich_generator = [
+  "distributions/*",
+  "distributions/log_momenta_kdes/*"
+]
+
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov"] 
+test = ["pytest", "pytest-cov"]

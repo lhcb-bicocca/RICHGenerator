@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import json
 from typing import Dict, Any, Optional, Union
+from importlib import resources
 
 import numpy as np
 
@@ -31,8 +32,7 @@ __all__ = [
 
 def _get_distributions_path() -> str:
     """Get the path to the distributions folder."""
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(this_dir, '..', '..', 'distributions')
+    return resources.files("rich_generator").joinpath("distributions")
 
 
 def list_available_particle_types() -> list[int]:

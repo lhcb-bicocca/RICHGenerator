@@ -204,11 +204,11 @@ import json
 
 ptypes = [211, 321, 2212, 11, 13]  # PDG codes for pi+, K+, p, e-, mu-
 # Load provided log-momentum KDEs (they already model log(p); DO NOT exponentiate here)
-mom_dists = {pt: load_kde(f"distributions/log_momenta_kdes/{pt}-kde.npz") for pt in ptypes}
+mom_dists = {pt: load_kde(f"src/rich_generator/distributions/log_momenta_kdes/{pt}-kde.npz") for pt in ptypes}
 # Load 2D centres KDE (returns samples shaped (2, N))
-centers_kde = load_kde("distributions/centers_R1-kde.npz")
+centers_kde = load_kde("src/rich_generator/distributions/centers_R1-kde.npz")
 # Load particle type proportions from JSON
-with open("distributions/particle_type_proportions.json", "r") as f:
+with open("src/rich_generator/distributions/particle_type_proportions.json", "r") as f:
     particle_type_proportions = json.load(f)
 ```
 

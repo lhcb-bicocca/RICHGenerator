@@ -16,7 +16,15 @@ from rich_generator.dataset_utils import (
     generate_MYOLO_dataset,
     generate_MYOLO_dataset_folder,
     read_dataset,
+    load_kde,
 )
+from rich_generator.utility import _get_distributions_path
+
+
+def get_distribution_path(relative_path: str) -> str:
+    """Get the full path to a distribution file within the package."""
+    distributions_dir = _get_distributions_path()
+    return str(distributions_dir / relative_path)
 
 
 def test_generate_myolo_dataset_and_folder(tmp_path, simple_centers_distribution):
@@ -32,10 +40,16 @@ def test_generate_myolo_dataset_and_folder(tmp_path, simple_centers_distribution
     # appropriate distributions from the ``distributions`` folder.  We also
     # set a large ``N_init`` to reduce the likelihood of Poisson sampling
     # zero hits.
+    kdes = {
+        211: load_kde(get_distribution_path('log_momenta_kdes/211-kde.npz')),
+    }
+    centres_kde = load_kde(get_distribution_path('centers_R1-kde.npz'))
     common_kwargs = dict(
         particle_types=particles,
         refractive_index=1.0014,
         detector_size=((-5.0, 5.0), (-5.0, 5.0)),
+        momenta_log_distributions=kdes,
+        centers_distribution=centres_kde,
         radial_noise=(0.0, 0.0),
         N_init=1000,
         max_radius=50.0,
